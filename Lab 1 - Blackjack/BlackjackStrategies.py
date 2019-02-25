@@ -1,14 +1,49 @@
 import random
+import abc
 
 STARTING_FUNDS = 50
 BET_SIZE = 10
 DECK_SIZE = 52
+AGGRESSIVE_THRESHOLD = 16
+CONSERVATIVE_THRESHOLD = 13
+
+
+class PlayStyle():
+    def play(self, score):
+        raise NotImplementedError()
+
+
+class PlayAggressive(PlayStyle):
+    def __init__(self):
+        self.threshold = AGGRESSIVE_THRESHOLD
+
+    def play(self, score):
+        if score <= self.threshold:
+            return True
+        else:
+            return False
+
+
+class PlayConservative(PlayStyle):
+    def __init__(self):
+        self.threshold = CONSERVATIVE_THRESHOLD
+
+    def play(self, score):
+        if score <= self.threshold:
+            return True
+        else:
+            return False
 
 
 class Player:
-    def __init__(self, deck):
+    def __init__(self, deck, strategy=None):
         self.deck = deck
-        self.funds = STARTING_FUNDS
+        self.wins = 0
+        if strategy is not None:
+            self.strategy = strategy
+
+    def play(self):
+        return self.strategy.play(self.total_score())
 
     def reset_deck(self, deck):
         self.deck = deck
@@ -68,11 +103,10 @@ class Card:
 
 
 m = Deck()
-p = Player([m.draw(), m.draw()])
+p = Player([m.draw(), m.draw()], PlayConservative())
 d = Player([m.draw()])
-keepGoing = 'y'
 
-while keepGoing[0].lower() == 'y':
+for r in range(1000):
     m.reset()
     p.reset_deck([m.draw(), m.draw()])
     d.reset_deck([m.draw()])
@@ -80,14 +114,9 @@ while keepGoing[0].lower() == 'y':
     print("Your first card is: %s" % (p.get_deck(0)))
     print("Your second card is: %s" % (p.get_deck(1)))
     print("Dealer's first card is: %s" % (d.get_deck(0)))
-    answer = raw_input("Hit or stand?")
-    while answer[0].lower() == 'h':
+    while p.play():
         p.draw_deck(m.draw())
         print("You drew: %s, for a total of %s points." % (p.get_last(), p.total_score()))
-        if p.total_score() <= 21:
-            answer = raw_input("Hit or stand?")
-        else:
-            answer = 's'
 
     if p.total_score() == 21:
         you_win = True
@@ -105,14 +134,10 @@ while keepGoing[0].lower() == 'y':
             you_win = True
 
     if you_win:
-        p.funds += BET_SIZE
-        d.funds -= BET_SIZE
-        print("You win! Your funds: $%.2f" % p.funds)
+        p.wins += 1
+        print("You win! Your wins: %s" % p.wins)
     else:
-        p.funds -= BET_SIZE
-        d.funds += BET_SIZE
-        print("You lose! Your funds: $%.2f" % p.funds)
+        d.wins += 1
+        print("You lose! Your wins: %s" % p.wins)
 
-    keepGoing = raw_input("Try again?")
-
-print("Your final score: $%.2f. GG!" % p.funds)
+print("Your final win rate: %s:%s. GG!" % (p.wins, d.wins))
