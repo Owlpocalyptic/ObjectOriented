@@ -4,12 +4,13 @@ import abc
 STARTING_FUNDS = 50
 BET_SIZE = 10
 DECK_SIZE = 52
-AGGRESSIVE_THRESHOLD = 16
-CONSERVATIVE_THRESHOLD = 13
+AGGRESSIVE_THRESHOLD = 17
+AGGRESSIVE_ACE_THRESHOLD = 20
+CONSERVATIVE_THRESHOLD = 15
 
 
 class PlayStyle():
-    def play(self, score):
+    def play(self, score, aces):
         raise NotImplementedError()
 
 
@@ -17,8 +18,8 @@ class PlayAggressive(PlayStyle):
     def __init__(self):
         self.threshold = AGGRESSIVE_THRESHOLD
 
-    def play(self, score):
-        if score <= self.threshold:
+    def play(self, score, contains_ace):
+        if score <= self.threshold or (score <= AGGRESSIVE_ACE_THRESHOLD and contains_ace):
             return True
         else:
             return False
@@ -28,7 +29,7 @@ class PlayConservative(PlayStyle):
     def __init__(self):
         self.threshold = CONSERVATIVE_THRESHOLD
 
-    def play(self, score):
+    def play(self, score, contains_ace):
         if score <= self.threshold:
             return True
         else:
@@ -43,7 +44,7 @@ class Player:
             self.strategy = strategy
 
     def play(self):
-        return self.strategy.play(self.total_score())
+        return self.strategy.play(self.total_score(), self.contains_ace())
 
     def reset_deck(self, deck):
         self.deck = deck
@@ -57,12 +58,20 @@ class Player:
     def draw_deck(self, card):
         self.deck.append(card)
 
+    def contains_ace(self):
+        b = False
+        for c in self.deck:     # this covers the "flex" quality of an Ace.
+            if c.value == 11:
+                b = True
+        return b
+
     def total_score(self):
         i = 0
         for c in self.deck:
             i += c.value
         for c in self.deck:     # this covers the "flex" quality of an Ace.
             if i > 21 and c.value == 11:
+                c.value = 1
                 i -= 10
         return i
 
@@ -102,42 +111,40 @@ class Card:
             self.name = value
 
 
-m = Deck()
-p = Player([m.draw(), m.draw()], PlayConservative())
-d = Player([m.draw()])
+class Play:
+    def __init__(self, playstyle):
+        self.m = Deck()
+        self.p = Player([self.m.draw(), self.m.draw()], playstyle)
+        self.d = Player([self.m.draw()])
 
-for r in range(1000):
-    m.reset()
-    p.reset_deck([m.draw(), m.draw()])
-    d.reset_deck([m.draw()])
-    you_win = True
-    print("Your first card is: %s" % (p.get_deck(0)))
-    print("Your second card is: %s" % (p.get_deck(1)))
-    print("Dealer's first card is: %s" % (d.get_deck(0)))
-    while p.play():
-        p.draw_deck(m.draw())
-        print("You drew: %s, for a total of %s points." % (p.get_last(), p.total_score()))
+    def simulate(self, repetitions):
+        for r in range(repetitions):
+            self.m.reset()
+            self.p.reset_deck([self.m.draw(), self.m.draw()])
+            self.d.reset_deck([self.m.draw()])
+            while self.p.play():
+                self.p.draw_deck(self.m.draw())
+            if self.p.total_score() == 21:
+                p_win = True
+            elif self.p.total_score() > 21:
+                p_win = False
+            else:
+                while self.d.total_score() < 21 and self.d.total_score() < self.p.total_score():
+                    self.d.draw_deck(self.m.draw())
+                if 21 >= self.d.total_score() >= self.p.total_score():
+                    p_win = False
+                else:
+                    p_win = True
 
-    if p.total_score() == 21:
-        you_win = True
-    elif p.total_score() > 21:
-        you_win = False
-    else:
-        while d.total_score() < 21 and d.total_score() < p.total_score():
-            d.draw_deck(m.draw())
-            print("Dealer draws: %s, for a total of %s points." % (d.get_last(), d.total_score()))
-        print("Dealer's total score is: %s" % (d.total_score()))
-        print("Your total score is: %s" % (p.total_score()))
-        if 21 >= d.total_score() >= p.total_score():
-            you_win = False
-        else:
-            you_win = True
+            if p_win:
+                self.p.wins += 1
+            else:
+                self.d.wins += 1
 
-    if you_win:
-        p.wins += 1
-        print("You win! Your wins: %s" % p.wins)
-    else:
-        d.wins += 1
-        print("You lose! Your wins: %s" % p.wins)
+        return " final win rate: %s:%s. GG!" % (self.p.wins, self.d.wins)
 
-print("Your final win rate: %s:%s. GG!" % (p.wins, d.wins))
+
+aGame = Play(PlayAggressive())
+print("Aggressive player A's" + aGame.simulate(5000))
+cGame = Play(PlayConservative())
+print("Conservative player A's" + cGame.simulate(5000))
