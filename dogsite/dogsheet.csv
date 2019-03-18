@@ -1,0 +1,15 @@
+Afghan Hound,High,Long,FALSE,FALSE,High,Low,High,Large,AfghanHound.jpg
+Basset Hound,Medium,Short,TRUE,TRUE,Low,Medium,Low,Medium,BassetHound.jpg
+Beagle,High,Short,FALSE,TRUE,Medium,Medium,Low,Medium,Beagle.jpg
+Bichon Frise,High,Medium,FALSE,TRUE,High,High,Low,Small,Bichonfrise.jpg
+Borzoi,High,Long,FALSE,FALSE,High,High,High,Large,Borzoi.jpg
+Bull Dog,Medium,Short,TRUE,FALSE,Low,Medium,Low,Medium,Bulldog.jpg
+Cavalier King Charles Spaniel,Medium,Medium,FALSE,TRUE,High,Medium,Medium,Small,CavalierKingCharlesSpaniel.jpg
+Chow Chow,Medium,Long,TRUE,FALSE,High,High,High,Large,ChowChow.jpg
+Dalmation,High,Short,FALSE,FALSE,Medium,High,Low,Large,Dalmation.jpg
+Golden Retriever,High,Long,FALSE,TRUE,Medium,High,High,Large,GoldenRetriever.jpg
+Maltese,High,Long,FALSE,TRUE,High,High,High,Miniature,Maltese.jpg
+Newfoundland,High,Long,TRUE,TRUE,Medium,High,High,Giant,Newfoundland.jpg
+Old English Sheepdog,High,Long,TRUE,TRUE,High,Medium,High,Giant,OldEnglishSheepdog.jpg
+Pug,High,Short,FALSE,TRUE,Low,Low,Low,Miniature,Pug.jpg
+West Highland White Terrier,High,Medium,FALSE,TRUE,Medium,High,Medium,Small,WestHighlandWhiteTerrier.jpg
